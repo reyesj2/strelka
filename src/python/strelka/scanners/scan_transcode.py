@@ -55,7 +55,9 @@ class ScanTranscode(strelka.Scanner):
 
             # Send extracted file back to Strelka
             self.emit_file(converted_image, name=file.name)
-        except UnidentifiedImageError:
+        except (UnidentifiedImageError, OSError, ValueError):
+            # pillow-heif 1.x raises OSError/ValueError during .load() for broken
+            # HEIC files rather than UnidentifiedImageError at .open() time.
             self.flags.append("unidentified_image")
             return
 

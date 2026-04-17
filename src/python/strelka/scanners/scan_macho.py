@@ -6,7 +6,7 @@ from strelka import strelka
 
 CPU_SUBTYPES = {
     "ANY": {-2: "ANY", -1: "MULTIPLE", 0: "LITTLE_ENDIAN", 1: "BIG_ENDIAN"},
-    "x86": {
+    "X86": {
         -2: "x86 (I386)",
         -1: "MULITPLE",
         0: "INTEL_MODEL_ALL",
@@ -77,7 +77,7 @@ CPU_SUBTYPES = {
         11: "POWERPC_7450",
         100: "POWERPC_970",
     },
-    "x86_64": {
+    "X86_64": {
         -2: "x86_64",
         -1: "MULTIPLE",
         0: "INTEL_MODEL_ALL",
@@ -181,7 +181,7 @@ class ScanMacho(strelka.Scanner):
     def scan(self, data, file, options, expire_at):
         tmp_directory = options.get("tmp_directory", "/tmp/")
 
-        macho = MachO.parse(raw=list(data), config=MachO.ParserConfig.deep)
+        macho = MachO.parse(list(data), config=MachO.ParserConfig.deep)
 
         self.event["total"] = {
             "binaries": macho.size,

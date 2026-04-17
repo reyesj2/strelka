@@ -2,7 +2,10 @@ import io
 import struct
 import zlib
 
-import pylzma
+try:
+    import pylzma
+except ImportError:
+    pylzma = None
 
 from strelka import strelka
 
@@ -31,6 +34,9 @@ class ScanSwf(strelka.Scanner):
 
             elif magic == b"ZWS":
                 self.event["type"] = "ZWS"
+                if pylzma is None:
+                    self.flags.append("pylzma_unavailable")
+                    return
                 swf_io.seek(12)
                 extract_data += pylzma.decompress(swf_io.read())[: swf_size - 8]
 

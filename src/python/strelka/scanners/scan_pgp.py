@@ -46,7 +46,10 @@ class ScanPgp(strelka.Scanner):
 
         try:
             pgpdump_data = pgpdump.AsciiData(data)
-        except (pgpdump.utils.PgpdumpException, AttributeError):
+        except Exception:
+            # AsciiData can raise PgpdumpException, AttributeError, or
+            # binascii.Error (Python 3.14+ base64 is stricter) when the input
+            # is actually a binary PGP file. Fall back to BinaryData.
             try:
                 pgpdump_data = pgpdump.BinaryData(data)
             except pgpdump.utils.PgpdumpException:

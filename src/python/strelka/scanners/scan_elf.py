@@ -10,7 +10,7 @@ class ScanElf(strelka.Scanner):
     """Collects metadata from ELF files."""
 
     def scan(self, data, file, options, expire_at):
-        elf = ELF.parse(raw=list(data))
+        elf = ELF.parse(list(data))
 
         self.event["total"] = {
             "libraries": len(elf.libraries),
@@ -23,6 +23,22 @@ class ScanElf(strelka.Scanner):
         self.event["nx"] = elf.has_nx
         self.event["pie"] = elf.is_pie
 
+        # lief 0.17 consolidated the per-arch flag lists (arm_flags_list,
+        # hexagon_flags_list, mips_flags_list, ppc64_flags_list) into a single
+        # flags_list. Populate the relevant bucket based on machine_type so the
+        # emitted schema stays the same.
+        arch_flags = {"arm": [], "hexagon": [], "mips": [], "ppc64": []}
+        arch_bucket = {
+            ELF.ARCH.ARM: "arm",
+            ELF.ARCH.AARCH64: "arm",
+            ELF.ARCH.MIPS: "mips",
+            ELF.ARCH.PPC64: "ppc64",
+        }.get(elf.header.machine_type)
+        if arch_bucket:
+            arch_flags[arch_bucket] = [
+                str(f).split(".")[1] for f in elf.header.flags_list
+            ]
+
         try:
             self.event["header"] = {
                 "endianness": str(elf.header.identity_data).split(".")[1],
@@ -32,14 +48,7 @@ class ScanElf(strelka.Scanner):
                     "version": str(elf.header.object_file_version).split(".")[1],
                 },
                 "flags": {
-                    "arm": [str(f).split(".")[1] for f in elf.header.arm_flags_list],
-                    "hexagon": [
-                        str(f).split(".")[1] for f in elf.header.hexagon_flags_list
-                    ],
-                    "mips": [str(f).split(".")[1] for f in elf.header.mips_flags_list],
-                    "ppc64": [
-                        str(f).split(".")[1] for f in elf.header.ppc64_flags_list
-                    ],
+                    **arch_flags,
                     "processor": elf.header.processor_flag,
                 },
                 "identity": {
@@ -74,16 +83,7 @@ class ScanElf(strelka.Scanner):
             if relo.has_symbol:
                 row["symbol"] = relo.symbol.name
 
-            if elf.header.machine_type == ELF.ARCH.x86_64:
-                row["type"] = str(ELF.RELOCATION_X86_64(relo.type)).split(".")[1]
-            elif elf.header.machine_type == ELF.ARCH.i386:
-                row["type"] = str(ELF.RELOCATION_i386(relo.type)).split(".")[1]
-            elif elf.header.machine_type == ELF.ARCH.ARM:
-                row["type"] = str(ELF.RELOCATION_ARM(relo.type)).split(".")[1]
-            elif elf.header.machine_type == ELF.ARCH.AARCH64:
-                row["type"] = str(ELF.RELOCATION_AARCH64(relo.type)).split(".")[1]
-            else:
-                row["type"] = str(relo.type)
+            row["type"] = relo.type.name
 
             self.event["relocations"].append(row)
 
@@ -151,9 +151,7 @@ class ScanElf(strelka.Scanner):
                     "information": sym.information,
                     "function": sym.is_function,
                     "symbol": sym.name,
-                    "section_index": str(ELF.SYMBOL_SECTION_INDEX(sym.shndx)).rsplit(
-                        "."
-                    )[1],
+                    "section_index": sym.shndx,
                     "size": sym.size,
                     "static": sym.is_static,
                     "version": str(sym.symbol_version),

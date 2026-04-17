@@ -24,7 +24,7 @@ def test_scan_udf(mocker):
         ],
         "hidden_dirs": [],
         "meta": {
-            "7zip_version": "24.09",
+            "7zip_version": "26.00",
             "partitions": [
                 {
                     "path": mock.ANY,

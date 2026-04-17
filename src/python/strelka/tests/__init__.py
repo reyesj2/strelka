@@ -8,8 +8,12 @@ from pathlib import Path
 from zipfile import ZipFile
 
 import magic
-import py7zr
 import requests
+
+try:
+    import py7zr
+except ImportError:
+    py7zr = None
 
 from strelka.strelka import File
 
@@ -108,6 +112,10 @@ def get_remote_fixture_archive(
             raise e
 
     elif mime_type == "application/x-7z-compressed":
+        if py7zr is None:
+            raise RuntimeError(
+                "py7zr is required to decompress 7z fixtures but is not installed"
+            )
         try:
             with py7zr.SevenZipFile(bytesfile, password=password) as archive:
                 allfiles = archive.readall()

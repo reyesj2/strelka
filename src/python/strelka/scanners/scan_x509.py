@@ -27,7 +27,7 @@ class ScanX509(strelka.Scanner):
         self.event["issuer"] = cert.get_issuer().as_text()
         self.event["subject"] = cert.get_subject().as_text()
         self.event["serial_number"] = str(cert.get_serial_number())
-        self.event["fingerprint"] = cert.get_fingerprint()
+        self.event["fingerprint"] = cert.get_fingerprint("md5")
         self.event["version"] = cert.get_version()
         self.event["not_after"] = int(
             cert.get_not_after().get_datetime().strftime("%s")
