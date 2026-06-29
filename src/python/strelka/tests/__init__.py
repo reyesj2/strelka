@@ -111,17 +111,6 @@ def get_remote_fixture_archive(
         except Exception as e:
             raise e
 
-    elif mime_type == "application/x-7z-compressed":
-        if py7zr is None:
-            raise RuntimeError(
-                "py7zr is required to decompress 7z fixtures but is not installed"
-            )
-        try:
-            with py7zr.SevenZipFile(bytesfile, password=password) as archive:
-                allfiles = archive.readall()
-        except Exception as e:
-            raise e
-
     elif mime_type == "application/gzip":
         try:
             with gzip.open(bytesfile) as archive:

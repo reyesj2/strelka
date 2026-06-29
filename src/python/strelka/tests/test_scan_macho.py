@@ -23,12 +23,13 @@ def test_scan_macho(mocker):
             "segments": 4,
             "symbols": 3,
         },
-        "nx": True,
+        "nx_stack": True,
+        "nx_heap": True,
         "pie": True,
         "header": {
             "cpu": {
                 "primary": "X86_64",
-                "sub": "x86_ALL, x86_64_ALL, I386_ALL, or 386",
+                "sub": "X86_ALL, X86_64_ALL, I386_ALL, or 386",
             },
             "file": "EXECUTE",
             "flags": ["NOUNDEFS", "DYLDLINK", "TWOLEVEL", "PIE"],
